@@ -9,8 +9,7 @@ const StatisticsLine = ({title, value}) => {
 const Statistics = ({props}) => {
 
   if (props.total <= 0) return (
-    
-        <p>No Feedback Given</p>
+    <p>No Feedback Given</p>
   )
 
   return (
