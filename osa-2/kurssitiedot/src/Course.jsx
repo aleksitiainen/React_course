@@ -20,7 +20,7 @@ const Content = ({parts}) => {
   return (
     <div>
       {parts.map((p, idx) => (
-        <Part key={p.name} part={p}/>
+        <Part key={p.id} part={p}/>
       ))}
     </div>
   )
@@ -36,25 +36,7 @@ const Tools = ({parts}) => {
   )
 }
 
-const App = () => {
-  const course = {
-    name: 'Half Stack application development',
-    parts: [
-      {
-        name: 'Fundamentals of React',
-        exercises: 10
-      },
-      {
-        name: 'Using props to pass data',
-        exercises: 7
-      },
-      {
-        name: 'State of a component',
-        exercises: 14
-      }
-    ]
-  }
-
+export const Course = ({course}) => {
   return (
     <div>
       <Header course={course.name}/>
@@ -64,4 +46,3 @@ const App = () => {
   )
 }
 
-export default App
