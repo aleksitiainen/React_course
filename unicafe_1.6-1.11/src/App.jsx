@@ -2,7 +2,10 @@ import { useState } from 'react'
 
 const StatisticsLine = ({title, value}) => {
   return (
-    <p>{title}: {value}</p>
+    <tr>
+      <td>{title}</td>
+      <td>{value}</td>
+    </tr>
   )
 }
 
@@ -15,12 +18,16 @@ const Statistics = ({props}) => {
   return (
     <div>
       <h2>Statistics</h2>
-      <StatisticsLine title="Good" value={props.good}/>
-      <StatisticsLine title="Neutral" value={props.neutral}/>
-      <StatisticsLine title="Bad" value={props.bad}/>
-      <StatisticsLine title="Total" value={props.total}/>
-      <StatisticsLine title="Average" value={props.keskiarvo}/>
-      <StatisticsLine title="Positive" value={props.positive}/>
+      <table>
+        <tbody>
+          <StatisticsLine title="Good" value={props.good}/>
+          <StatisticsLine title="Neutral" value={props.neutral}/>
+          <StatisticsLine title="Bad" value={props.bad}/>
+          <StatisticsLine title="Total" value={props.total}/>
+          <StatisticsLine title="Average" value={props.keskiarvo}/>
+          <StatisticsLine title="Positive" value={props.positive}/>
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -32,8 +39,8 @@ const App = () => {
   const [bad, setBad] = useState(0)
 
   const total = good + neutral + bad
-  const keskiarvo = total === 0 ? 0 : (good - bad) / total
-  const positive = total === 0 ? 0 : (good / total) * 100
+  const keskiarvo = (total === 0 ? 0 : (good - bad) / total).toFixed(1)
+  const positive = (total === 0 ? 0 : (good / total) * 100).toFixed(1)
 
   return (
     <div>
