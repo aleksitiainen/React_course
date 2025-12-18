@@ -62,7 +62,7 @@ const Form = ({ state, setState, errorState, successState }) => {
       
     } else {
       json_server
-        .create({ name: newName, number: phoneNumber })
+        .create({ name: newName, number: phoneNumber, id: String(Number(state[state.length - 1] + 1))})
         .then(response => {
           setState(prev => prev.concat(response.data))
           successState(`${newName} added to phonebook`)
