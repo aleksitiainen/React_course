@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useState } from 'react'
-import axios from 'axios';
+import json_server from './service.js'
 
 const Input = ({ label, state, setState }) => {
   return (
@@ -26,9 +26,14 @@ const Form = ({ state, setState }) => {
       }
     }
 
-    const newPersons = [...state];
-    newPersons.push({name: newName, number: phoneNumber})
-    setState(newPersons);
+    json_server
+    .create({ name: newName, number: phoneNumber, id: String(Number(state[state.length - 1]?.id) + 1) })
+    .then(response => {
+      console.log(response)
+      setState(prev => prev.concat(response.data))
+      setNewName('')
+      setPhoneNumber('')
+    })
   }
 
 
@@ -53,17 +58,14 @@ const Part = ({ content }) => {
   )
 }
 
-const fetchPersons = async (setState) => {
-  const response = await axios.get('http://localhost:3000/persons')
-  setState(response.data)
-} 
-
 const App = () => {
-
   const [persons, setPersons] = useState([]);
 
   useEffect(() => {
-    fetchPersons(setPersons);
+    json_server.getAll()
+    .then(r => {      
+      setPersons(r.data)
+    })
   }, [])
 
   const [filter, setFilter] = useState('')
