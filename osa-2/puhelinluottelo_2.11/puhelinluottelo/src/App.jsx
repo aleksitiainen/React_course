@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useState } from 'react'
+import axios from 'axios';
 
 const Input = ({ label, state, setState }) => {
   return (
@@ -53,11 +54,8 @@ const Part = ({ content }) => {
 }
 
 const fetchPersons = async (setState) => {
-  const response = await fetch('http://localhost:3000/persons', {
-    method: 'GET',
-  })
-  const data = await response.json();
-  setState(data)
+  const response = await axios.get('http://localhost:3000/persons')
+  setState(response.data)
 } 
 
 const App = () => {
