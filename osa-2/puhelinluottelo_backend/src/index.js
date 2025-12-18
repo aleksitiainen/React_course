@@ -1,7 +1,18 @@
 const express = require('express');
 const app = express();
 var morgan = require('morgan')
-app.use(morgan('tiny'))
+app.use(morgan(function (tokens, req, res) {
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms',
+    JSON.stringify(req.body), 
+  ].join(' ')
+}))
+
+app.use(express.json())
 
 const persons = [
     {
@@ -40,12 +51,11 @@ app.get('/api/persons/:id', async(req, res) => {
 })
 
 app.post('/api/persons', (req, res) => {
-    const { person } = req.body;
+    const { name, number } = req.body;
 
-    if (!person.name || !person.phone_number) return res.status(400).json({ error: 'All fields are required'});
-    if (persons.includes(person.name)) return res.status(400).json({ error: 'Name must be unique'});
-
-    persons.push({...person, id: String(Number(persons[persons.length - 1] + 1))});
+    if (!name || !number) return res.status(400).json({ error: 'All fields are required'});
+    if (persons.includes(name)) return res.status(400).json({ error: 'Name must be unique'});
+    persons.push({name, number: String(number), id: String((persons.length) + 1)});
     return res.status(201).json(persons)
 })
 
