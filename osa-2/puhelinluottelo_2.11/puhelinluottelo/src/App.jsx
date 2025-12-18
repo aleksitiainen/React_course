@@ -17,35 +17,64 @@ const Form = ({ state, setState, errorState, successState }) => {
   const [newName, setNewName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
 
-  const addPerson = (e) => {
-    e.preventDefault();
+  const handleSubmit = (e) => {
+    e.preventDefault()
 
     if (!newName) {
-      console.error('Name cant be empty');
-      return errorState('Name cant be empty');
-    } 
-
-    for (const person of state) {
-      if (person.name == newName) {
-        console.error(`Name ${newName} is already in phonebook`);
-        return errorState(`Name ${newName} is already in phonebook`);
-      }
+      return errorState('Name cant be empty')
     }
 
-    json_server
-    .create({ name: newName, number: phoneNumber, id: String(Number(state[state.length - 1]?.id) + 1) })
-    .then(response => {
-      errorState('')
-      setState(prev => prev.concat(response.data))
-      setNewName('')
-      setPhoneNumber('');
-      successState(`${newName} added to phonebook`)
-    })
+    const existingPerson = state.find(p => p.name === newName)
+
+    if (existingPerson) {
+      if (existingPerson.number === phoneNumber) {
+        return errorState(`Name ${newName} is already in phonebook`)
+      }
+
+      if (!window.confirm(
+        'Same name already exists with different phone number. Replace the old number?'
+      )) return
+
+      const updatedPerson = {
+        ...existingPerson,
+        number: phoneNumber
+      }
+
+      json_server
+        .update(existingPerson.id, updatedPerson)
+        .then(response => {
+          setState(prev =>
+            prev.map(p =>
+              p.id === existingPerson.id ? response.data : p
+            )
+          )
+          successState('Person updated')
+          setNewName('')
+          setPhoneNumber('')
+        })
+        .catch(error => {
+          errorState(`${newName} was already removed from server`)        
+          setTimeout(() => {          
+            errorState(null)        
+          }, 5000)        
+          setState(prev => prev.filter(p => p.id != existingPerson.id))
+        })
+      
+    } else {
+      json_server
+        .create({ name: newName, number: phoneNumber })
+        .then(response => {
+          setState(prev => prev.concat(response.data))
+          successState(`${newName} added to phonebook`)
+          setNewName('')
+          setPhoneNumber('')
+        })
+    }
   }
 
 
   return (
-    <form onSubmit={addPerson}>
+    <form onSubmit={handleSubmit}>
       <Input label="Name" state={newName} setState={setNewName}/>
       <Input label="Number" state={phoneNumber} setState={setPhoneNumber}/>
       <div>
@@ -81,9 +110,11 @@ const App = () => {
   const filteredPersons = Filter(persons, filter)
 
   const DeletePerson = (id) => {
-    json_server.delete(id)
+    if (!window.confirm('Are sure you want to delete this person from phonebook')) return;
+    json_server.deleteId(id)
     .then(r => {
       setPersons(prev => prev.filter(p => p.id !== r.data.id))
+      setErrorMessage('Person deleted from phonebook')
     })
   }
 
@@ -91,7 +122,7 @@ const App = () => {
     <div>
       <h1>Phonebook</h1>
       <Input label={"Filter"} state={filter} setState={setFilter}/>
-      
+
       <h2>Add new one</h2>
       {errorMessage && <Notification className={"error"} message={errorMessage} /> }
       {successMessage && <Notification className={"success"} message={successMessage} /> }

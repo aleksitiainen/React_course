@@ -21,5 +21,5 @@ export default {
   getAll: getAll, 
   create: create, 
   update: update,
-  delete: deleteId
+  deleteId: deleteId
 }
