@@ -12,92 +12,78 @@ app.use(morgan(function (tokens, req, res) {
   ].join(' ')
 }))
 const cors = require('cors')
-
+require('dotenv').config();
 app.use(cors())
 app.use(express.json())
 
-const persons = [
-    {
-        "name": "Arto Hellas",
-        "number": "040-123456",
-        "id": "1"
-    },
-    {
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523",
-        "id": "2"
-    },
-    {
-        "name": "Dan Abramov",
-        "number": "12-43-234345",
-        "id": "3"
-    },
-    {
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122",
-        "id": "4"
-    }
-]
-
-
+const Phonebook = require('./mongo')
 
 app.get('/api/persons', async(req, res) => {
-    return res.json(persons)
+    Phonebook.find({}).then(p => {
+        res.json(p)
+    })
 })
 
 app.get('/api/persons/:id', async(req, res) => {
-    const { id } = req.params;
 
-    const finded = persons.find(p => p.id === id);
+    const finded = await Phonebook.findById(req.params.id)
 
     if (!finded) return res.sendStatus(404);
     return res.status(200).json(finded)
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', async(req, res) => {
     const { name, number } = req.body;
 
     if (!name || !number) return res.status(400).json({ error: 'All fields are required'});
+
+    const persons = await Phonebook.find({})
+
     if (persons.includes(name)) return res.status(400).json({ error: 'Name must be unique'});
-    persons.push({name, number: String(number), id: String((persons.length) + 1)});
-    return res.status(201).json({name, number: String(number), id: String((persons.length) + 1)})
+    const person = await Phonebook.create({
+      name,
+      number
+    })
+
+    res.status(201).json(person)
 })
 
-app.put('/api/persons/:id', (req, res) => {
-    const { id } = req.params;
+app.put('/api/persons/:id', async(req, res) => {
     const { number } = req.body;
 
-    const index = persons.findIndex(p => p.id === id);
-    if (index === -1) {
-        return res.status(404).json({ error: 'Person not found' });
+    if (!number) {
+        return res.status(400).json({ error: 'number missing' })
     }
 
-    if (!number) return res.status(400).json({ error: 'All fields are required'});
-    const updatedPerson = {
-        ...persons[index],
-        number: String(number)
-    };
+    const updatedPerson = await Phonebook.findByIdAndUpdate(
+      req.params.id,
+      { number },
+      { new: true, runValidators: true, context: 'query' }
+    )
 
-    persons[index] = updatedPerson;
+    if (!updatedPerson) {
+      return res.sendStatus(404)
+    }
 
-    return res.status(200).json(updatedPerson);
+    res.json(updatedPerson)
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-    const {id} = req.params;
+app.delete('/api/persons/:id', async (req, res) => {
+    const deletedPerson = await Phonebook.findByIdAndDelete(req.params.id)
 
-    const person = persons.find((p) => p.id === id);
+    if (!deletedPerson) {
+        return res.sendStatus(404)
+    }
 
-    if (!person) return res.sendStatus(404);
-
-    if (person) {
-        persons.pop(person)
-        return res.status(200).json(person);
-    } 
+    res.json(deletedPerson);
 })
 
 app.get('/api/info', async(req, res) => {
-    return res.send(`Phonebook has ${persons.length} person <br> ${new Date(Date.now())}`)
+    const count = await Phonebook.countDocuments({})
+    return res.send(`
+      Phonebook has ${count} persons<br>
+      ${new Date()}
+    `)
 })
 
-app.listen(3001, () => console.log('Listening on port 3001'));
+app.listen(process.env.PORT || 3001, () => console.log('Listening on port 3001'));

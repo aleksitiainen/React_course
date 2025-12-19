@@ -41,11 +41,11 @@ const Form = ({ state, setState, errorState, successState }) => {
       }
 
       json_server
-        .update(existingPerson.id, updatedPerson)
+        .update(existingPerson._id, updatedPerson)
         .then(response => {
           setState(prev =>
             prev.map(p =>
-              p.id === existingPerson.id ? response.data : p
+              p._id === existingPerson._id ? response.data : p
             )
           )
           successState('Person updated')
@@ -57,7 +57,7 @@ const Form = ({ state, setState, errorState, successState }) => {
           setTimeout(() => {          
             errorState(null)        
           }, 5000)        
-          setState(prev => prev.filter(p => p.id != existingPerson.id))
+          setState(prev => prev.filter(p => p._id != existingPerson._id))
         })
       
     } else {
@@ -113,7 +113,7 @@ const App = () => {
     if (!window.confirm('Are sure you want to delete this person from phonebook')) return;
     json_server.deleteId(id)
     .then(r => {
-      setPersons(prev => prev.filter(p => p.id !== r.data.id))
+      setPersons(prev => prev.filter(p => p._id !== r.data._id))
       setErrorMessage('Person deleted from phonebook')
     })
   }
@@ -130,13 +130,13 @@ const App = () => {
 
       <h2>Numbers</h2>
       {filteredPersons.map((p, idx) => 
-        <table key={p.id}>
+        <table key={p._id}>
           <tbody>
             <tr>
               <Part content={p.name} />
               <Part content={p.number} />
               <td>
-                <button onClick={() => DeletePerson(p.id)}>Delete</button>
+                <button onClick={() => DeletePerson(p._id)}>Delete</button>
               </td>
             </tr>
           </tbody>
