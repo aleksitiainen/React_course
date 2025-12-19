@@ -11,7 +11,9 @@ app.use(morgan(function (tokens, req, res) {
     JSON.stringify(req.body), 
   ].join(' ')
 }))
+const cors = require('cors')
 
+app.use(cors())
 app.use(express.json())
 
 const persons = [
@@ -56,7 +58,27 @@ app.post('/api/persons', (req, res) => {
     if (!name || !number) return res.status(400).json({ error: 'All fields are required'});
     if (persons.includes(name)) return res.status(400).json({ error: 'Name must be unique'});
     persons.push({name, number: String(number), id: String((persons.length) + 1)});
-    return res.status(201).json(persons)
+    return res.status(201).json({name, number: String(number), id: String((persons.length) + 1)})
+})
+
+app.put('/api/persons/:id', (req, res) => {
+    const { id } = req.params;
+    const { number } = req.body;
+
+    const index = persons.findIndex(p => p.id === id);
+    if (index === -1) {
+        return res.status(404).json({ error: 'Person not found' });
+    }
+
+    if (!number) return res.status(400).json({ error: 'All fields are required'});
+    const updatedPerson = {
+        ...persons[index],
+        number: String(number)
+    };
+
+    persons[index] = updatedPerson;
+
+    return res.status(200).json(updatedPerson);
 })
 
 app.delete('/api/persons/:id', (req, res) => {
